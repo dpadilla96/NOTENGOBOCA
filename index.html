@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0d1d" />
+  <meta name="description" content="Archivo AM: La última voz. Videojuego educativo de plataformas y análisis literario inspirado en No tengo boca y debo gritar." />
+  <title>Archivo AM — La última voz | Videojuego de lectura</title>
+  <style>
+    :root { --bg:#090b18; --panel:#11162c; --panel2:#161d38; --text:#f4f6ff; --muted:#b2bfd7; --cyan:#69f4f0; --pink:#ff6cb7; --violet:#a88bff; --yellow:#ffe38e; --line:rgba(142,160,232,.24); }
+    * { box-sizing:border-box; }
+    html,body { margin:0; min-height:100%; }
+    body { font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--text); background:radial-gradient(circle at 15% -5%,#29305f 0,transparent 35%),radial-gradient(circle at 100% 45%,#282146 0,transparent 43%),var(--bg); }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    button:focus-visible,input:focus-visible { outline:3px solid var(--yellow); outline-offset:3px; }
+    .page { width:min(1200px,calc(100% - 30px)); margin:0 auto; padding:24px 0 30px; }
+    .mast { display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:16px; }
+    .eyebrow { font-size:.68rem; font-weight:850; color:var(--cyan); letter-spacing:.23em; margin:0 0 5px; }
+    h1 { margin:0; font-size:clamp(1.5rem,3.2vw,2.55rem); text-transform:uppercase; letter-spacing:.04em; line-height:1.05; }
+    .highlight { color:var(--pink); }
+    .subtitle { margin:7px 0 0; color:var(--muted); font-size:.88rem; }
+    .mast-icon { width:70px; height:70px; flex:none; display:grid; place-items:center; border:1px solid rgba(105,244,240,.48); border-radius:19px; color:var(--cyan); background:linear-gradient(140deg,rgba(105,244,240,.13),rgba(255,108,183,.12)); box-shadow:0 0 24px rgba(105,244,240,.08); font-weight:1000; font-size:1.5rem; letter-spacing:.06em; }
+    .status { display:grid; grid-template-columns:1.75fr .72fr .72fr .72fr; gap:9px; margin-bottom:10px; }
+    .stat { border:1px solid var(--line); border-radius:12px; padding:9px 13px; background:rgba(17,22,44,.9); display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+    .stat span { font-size:.7rem; text-transform:uppercase; font-weight:750; color:var(--muted); letter-spacing:.06em; }
+    .stat strong { font-size:clamp(.84rem,1.7vw,1.08rem); white-space:nowrap; }
+    .stat:first-child strong { color:var(--cyan); overflow:hidden; text-overflow:ellipsis; }
+    .hearts { letter-spacing:2px; color:var(--pink); }
+    .game-wrap { position:relative; width:100%; aspect-ratio:16/9; background:#060b19; overflow:hidden; border:1px solid rgba(105,244,240,.4); border-radius:16px; box-shadow:0 22px 75px rgba(0,0,0,.42),0 0 0 5px rgba(105,244,240,.025); isolation:isolate; }
+    canvas { width:100%; height:100%; display:block; image-rendering:auto; }
+    .scanlines { pointer-events:none; z-index:2; position:absolute; inset:0; opacity:.15; background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,rgba(0,0,0,.65) 4px); }
+    .overlay { position:absolute; z-index:8; inset:0; padding:20px; display:none; place-items:center; overflow:auto; background:rgba(4,8,24,.84); backdrop-filter:blur(6px); }
+    .overlay.visible { display:grid; }
+    .dialog { width:min(665px,100%); max-height:100%; overflow:auto; padding:clamp(18px,3.4vw,34px); border:1px solid rgba(105,244,240,.5); border-radius:17px; background:linear-gradient(155deg,#192342,#111529 70%); box-shadow:0 20px 70px #0008,0 0 55px #69f4f00f; text-align:center; }
+    .dialog.mini { max-width:530px; }
+    .mini-tag { display:inline-block; font-size:.7rem; font-weight:900; letter-spacing:.16em; text-transform:uppercase; color:var(--cyan); padding:8px 12px; border-radius:100px; border:1px solid rgba(105,244,240,.35); background:rgba(105,244,240,.07); }
+    .dialog h2 { margin:12px 0; font-size:clamp(1.35rem,3.7vw,2.5rem); line-height:1.12; text-transform:uppercase; }
+    .dialog p { line-height:1.55; color:#d4def3; margin:8px auto 18px; max-width:55ch; font-size:clamp(.84rem,1.45vw,1rem); }
+    .dialog .accent { color:var(--pink); }
+    .btn { border:none; border-radius:11px; background:linear-gradient(130deg,var(--cyan),#8abafa); color:#0b1731; font-weight:900; letter-spacing:.02em; padding:12px 20px; min-height:43px; transition:transform .15s ease,filter .15s ease; }
+    .btn:hover { transform:translateY(-1px); filter:brightness(1.08); }
+    .btn.secondary { border:1px solid rgba(168,139,255,.58); color:#f7f1ff; background:rgba(168,139,255,.1); }
+    .btn.pink { background:linear-gradient(120deg,var(--pink),#f0a5d9); }
+    .btn.ghost { background:transparent; color:#b7c5e0; border:1px solid #38456a; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:19px; }
+    .help-pill { display:inline-block; margin:0 4px 7px; padding:6px 8px; border:1px solid rgba(255,255,255,.17); border-radius:9px; color:var(--yellow); font-weight:800; font-size:.83rem; background:#080d20; }
+    .quiz-heading { margin-bottom:10px; font-size:.75rem; color:var(--yellow); font-weight:800; letter-spacing:.13em; }
+    .question-text { font-size:clamp(1.04rem,2.4vw,1.52rem)!important; font-weight:790; line-height:1.35!important; color:#fff!important; }
+    .answers { display:grid; gap:9px; margin:12px 0; }
+    .answer { width:100%; text-align:left; padding:12px 15px; border-radius:10px; border:1px solid rgba(168,139,255,.38); color:var(--text); background:#111a33; font-size:clamp(.82rem,1.5vw,.98rem); line-height:1.35; min-height:45px; }
+    .answer:hover:not(:disabled),.answer:focus-visible { border-color:var(--cyan); background:#1b3050; }
+    .answer:disabled { opacity:.66; cursor:default; }
+    .answer.correct { border-color:var(--cyan); background:#174344; }
+    .answer.wrong { border-color:#ff8b9c; background:#40203a; }
+    .quiz-feedback { min-height:27px; color:var(--yellow); font-size:.88rem; font-weight:750; margin-top:10px; }
+    .toast { position:absolute; z-index:6; left:50%; top:14%; transform:translateX(-50%); width:max-content; max-width:85%; text-align:center; padding:12px 18px; border-radius:11px; border:1px solid var(--cyan); color:#eafefe; background:#0d2840ed; box-shadow:0 8px 20px #0008; font-weight:800; opacity:0; pointer-events:none; transition:opacity .2s ease; }
+    .toast.show { opacity:1; }
+    .footer-grid { display:grid; grid-template-columns:1.25fr 1fr; gap:12px; margin-top:13px; }
+    .box { border-radius:14px; padding:14px 18px; border:1px solid var(--line); background:rgba(16,22,44,.87); }
+    .box h3 { margin:0 0 5px; font-size:.89rem; text-transform:uppercase; letter-spacing:.06em; }
+    .box p { margin:0; color:var(--muted); line-height:1.48; font-size:.86rem; }
+    .control-list { display:flex; flex-wrap:wrap; gap:7px 13px; align-items:center; }
+    .control-list span { color:#d7e3fa; font-size:.84rem; }
+    kbd { background:#25304f; color:var(--cyan); border:1px solid #3e527e; border-bottom-width:3px; border-radius:6px; padding:3px 6px; font-weight:800; font-size:.82rem; }
+    .control-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; margin-top:10px; }
+    .small-note { font-size:.72rem; color:#94a7c7; line-height:1.5; margin:0; }
+    .control-bar button { color:var(--muted); background:none; border:1px solid #38456a; border-radius:8px; padding:7px 11px; font-size:.8rem; }
+    .touch-controls { display:none; justify-content:space-between; align-items:center; gap:12px; padding-top:14px; user-select:none; -webkit-user-select:none; }
+    .touch-group { display:flex; gap:9px; }
+    .touch-btn { touch-action:none; width:64px; height:56px; border-radius:14px; border:1px solid #6682b3; background:#1a2748; color:var(--cyan); font-size:1.55rem; font-weight:900; }
+    .touch-btn.action { background:#41264d; border-color:#d78ac0; color:#ffbde1; font-size:1rem; }
+    .cert-name { display:block; margin:13px auto 6px; width:min(400px,100%); padding:13px 15px; background:#080e25; color:white; border:1px solid #53688c; border-radius:9px; text-align:center; }
+    .score-big { font-size:3rem; line-height:1; color:var(--yellow); font-weight:950; letter-spacing:.02em; }
+    .progress-dots { display:flex; justify-content:center; gap:7px; margin:15px 0; }
+    .progress-dots span { width:35px; height:7px; border-radius:9px; background:#3b496c; }
+    .progress-dots .done { background:var(--cyan); }
+    .certificate { display:none; }
+    @media (max-width:820px) {
+      .page { width:calc(100% - 18px); padding-top:15px; }
+      .mast-icon { width:51px;height:51px;font-size:1.1rem; }
+      .status { grid-template-columns:1fr 1fr; }
+      .stat { padding:8px; }
+      .footer-grid { grid-template-columns:1fr; }
+      .touch-controls { display:flex; }
+      .game-wrap { border-radius:10px; }
+      .overlay { padding:7px; }
+      .dialog { padding:12px 17px; }
+      .dialog h2 { margin:5px 0; }
+      .dialog p { margin:5px auto 10px; }
+      .actions { margin-top:9px; }
+    }
+    @media (max-width:540px) {
+      .subtitle { font-size:.74rem; }
+      .stat span { font-size:.62rem; }
+      .game-wrap { aspect-ratio: 1.1; }
+      canvas { width:100%; height:100%; object-fit:contain; }
+      .dialog h2 { font-size:1.2rem; }
+      .dialog p { font-size:.76rem; line-height:1.38; }
+      .mini-tag,.quiz-heading { font-size:.62rem; }
+      .answer { min-height:37px; padding:7px 10px; font-size:.75rem; }
+      .btn { padding:9px 12px; font-size:.77rem; min-height:37px; }
+      .help-pill { padding:4px; font-size:.66rem; }
+      .progress-dots { margin:5px 0; }
+    }
+    @media print {
+      @page { size:A4 landscape; margin:12mm; }
+      html,body { background:white!important; height:auto; }
+      .page { display:none!important; }
+      .certificate { display:flex!important; box-sizing:border-box; min-height:175mm; width:100%; border:10px double #272b55; padding:14mm 22mm; flex-direction:column; justify-content:center; align-items:center; text-align:center; background:linear-gradient(135deg,#fff,#f9f6ff)!important; color:#252646!important; print-color-adjust:exact; -webkit-print-color-adjust:exact; }
+      .certificate .cert-eyebrow { color:#a13d8a; letter-spacing:.25em; font-weight:900; font-size:12pt; }
+      .certificate h2 { font-size:33pt; text-transform:uppercase; margin:14px 0 6px; }
+      .certificate h3 { font-size:23pt; color:#6e3b96; margin:17px 0; }
+      .certificate p { max-width:850px; line-height:1.55; font-size:14pt; }
+      .certificate .cert-footer { display:flex; justify-content:space-between; width:100%; margin-top:28px; font-size:11pt; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="mast">
+      <div>
+        <p class="eyebrow">VIDEOJUEGO LITERARIO · MISIÓN INTERACTIVA</p>
+        <h1>ARCHIVO <span class="highlight">AM</span>: LA ÚLTIMA VOZ</h1>
+        <p class="subtitle">Inspirado en <em>No tengo boca y debo gritar</em>, de Harlan Ellison · Actividad para secundaria</p>
+      </div>
+      <div class="mast-icon" aria-hidden="true">AM_</div>
+    </header>
+
+    <section class="status" aria-label="Indicadores del juego">
+      <div class="stat"><span>Sector</span><strong id="hudLevel">01 / 05</strong></div>
+      <div class="stat"><span>Fragmentos</span><strong id="hudShards">0 / 3</strong></div>
+      <div class="stat"><span>Integridad</span><strong class="hearts" id="hudHearts">♥♥♥</strong></div>
+      <div class="stat"><span>Puntos</span><strong id="hudScore">0000</strong></div>
+    </section>
+
+    <div class="game-wrap" id="gameWrap" tabindex="0" aria-label="Área del videojuego, usa flechas para moverte y E para interactuar">
+      <canvas id="game" width="960" height="540" aria-hidden="true"></canvas>
+      <div class="scanlines"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+      <div class="overlay visible" id="screenIntro" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+        <div class="dialog">
+          <span class="mini-tag">SEÑAL INTERCEPTADA / EXPEDIENTE 001</span>
+          <h2 id="introTitle">EL SISTEMA <span class="accent">TE OBSERVA</span></h2>
+          <p>Una simulación de AM ha ocultado cinco archivos de lectura. Explora cada sector, reúne <strong>tres fragmentos</strong> y resuelve las preguntas del terminal para recuperar la memoria de la humanidad.</p>
+          <div aria-label="Controles">
+            <span class="help-pill">← → Mover</span>
+            <span class="help-pill">↑ / ESPACIO Saltar</span>
+            <span class="help-pill">E Abrir terminal</span>
+          </div>
+          <div class="progress-dots" id="introDots" aria-hidden="true"></div>
+          <div class="actions">
+            <button class="btn pink" id="btnStart">INICIAR MISIÓN</button>
+            <button class="btn secondary" id="btnInstructions">¿CÓMO SE JUEGA?</button>
+          </div>
+          <p style="font-size:.72rem;margin-top:17px">Experiencia original de análisis literario, no oficial. Sin escenas explícitas del relato.</p>
+        </div>
+      </div>
+
+      <div class="overlay" id="screenQuiz" role="dialog" aria-modal="true" aria-labelledby="questionText">
+        <div class="dialog">
+          <span class="mini-tag">TERMINAL DE ANÁLISIS</span>
+          <div class="quiz-heading" id="questionCounter">PREGUNTA 1 / 2</div>
+          <p class="question-text" id="questionText"></p>
+          <div class="answers" id="answers"></div>
+          <div class="quiz-feedback" id="quizFeedback" aria-live="polite"></div>
+          <div class="actions"><button class="btn ghost" id="btnCloseQuiz">VOLVER AL ESCENARIO</button></div>
+        </div>
+      </div>
+
+      <div class="overlay" id="screenTransition" role="dialog" aria-modal="true">
+        <div class="dialog mini">
+          <span class="mini-tag">ARCHIVO RESTAURADO</span>
+          <h2 id="transitionTitle">SECTOR COMPLETADO</h2>
+          <p id="transitionText"></p>
+          <div class="progress-dots" id="transitionDots"></div>
+          <button class="btn" id="btnNext">SIGUIENTE SECTOR</button>
+        </div>
+      </div>
+
+      <div class="overlay" id="screenPause" role="dialog" aria-modal="true">
+        <div class="dialog mini">
+          <span class="mini-tag">TRANSMISIÓN EN PAUSA</span>
+          <h2>CONEXIÓN SUSPENDIDA</h2>
+          <p>Los archivos permanecen en su lugar. Regresa cuando estés listo para continuar.</p>
+          <button class="btn" id="btnResume">CONTINUAR</button>
+        </div>
+      </div>
+
+      <div class="overlay" id="screenFinish" role="dialog" aria-modal="true">
+        <div class="dialog">
+          <span class="mini-tag">MISIÓN COMPLETADA · 5 / 5</span>
+          <h2>¡RECUPERASTE <span class="accent">LA VOZ!</span></h2>
+          <p>Completaste una misión de análisis literario sobre la inteligencia artificial, la libertad, la narración y la dignidad humana. Este desenlace pertenece al videojuego, no al cuento original.</p>
+          <div class="score-big" id="finalScore">0000</div>
+          <p style="margin:5px auto 11px;font-size:.77rem">PUNTOS OBTENIDOS</p>
+          <label for="studentName" style="font-weight:750;font-size:.87rem">Tu nombre para la constancia</label>
+          <input class="cert-name" id="studentName" maxlength="75" autocomplete="name" placeholder="Escribe tu nombre completo" />
+          <div class="actions">
+            <button class="btn pink" id="btnPrint">GUARDAR CONSTANCIA EN PDF</button>
+            <button class="btn secondary" id="btnReplay">VOLVER A JUGAR</button>
+          </div>
+          <p style="font-size:.73rem;margin-top:8px">En Chrome, selecciona <strong>Guardar como PDF</strong> en la ventana de impresión.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="touch-controls" aria-label="Controles táctiles opcionales">
+      <div class="touch-group">
+        <button class="touch-btn" id="touchLeft" aria-label="Mover a la izquierda">◀</button>
+        <button class="touch-btn" id="touchRight" aria-label="Mover a la derecha">▶</button>
+      </div>
+      <div class="touch-group">
+        <button class="touch-btn action" id="touchJump" aria-label="Saltar">SALTAR</button>
+        <button class="touch-btn action" id="touchInteract" aria-label="Interactuar con terminal">E</button>
+      </div>
+    </div>
+
+    <section class="footer-grid">
+      <div class="box"><h3 id="missionTitle">01 · Origen del archivo</h3><p id="missionText">Recoge los tres fragmentos brillantes y llega al terminal de la derecha. Esquiva las interferencias.</p></div>
+      <div class="box"><h3>Controles</h3><div class="control-list"><span><kbd>←</kbd> <kbd>→</kbd> o <kbd>A</kbd> <kbd>D</kbd> mover</span><span><kbd>↑</kbd> / <kbd>W</kbd> / <kbd>ESPACIO</kbd> saltar</span><span><kbd>E</kbd> interactuar</span><span><kbd>ESC</kbd> pausa</span></div></div>
+    </section>
+    <div class="control-bar">
+      <p class="small-note">Trabajo de lectura independiente. Basado en los temas de la obra de Harlan Ellison; no reproduce su texto ni su argumento de manera íntegra. El progreso se guarda localmente al terminar cada sector.</p>
+      <div><button id="btnPause">Pausar</button> <button id="btnReset">Reiniciar progreso</button></div>
+    </div>
+  </main>
+
+  <section class="certificate" id="certificate" aria-label="Constancia imprimible">
+    <div class="cert-eyebrow">EXPEDIENTE AM · LECTURA Y TECNOLOGÍA</div>
+    <h2>Constancia de participación</h2>
+    <p>Se reconoce a:</p>
+    <h3 id="certStudent">Estudiante</h3>
+    <p>por completar la experiencia interactiva <strong>«Archivo AM: La última voz»</strong>, inspirada en la obra <em>No tengo boca y debo gritar</em> de Harlan Ellison, y responder los desafíos de interpretación literaria, ética y pensamiento crítico.</p>
+    <div class="cert-footer"><span id="certDate"></span><span id="certPoints"></span><span>Actividad académica · Constancia no oficial</span></div>
+  </section>
+
+  <script>
+  (() => {
+    'use strict';
+    const W = 960, H = 540, FLOOR_Y = 486;
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) { alert('Este navegador no es compatible con el juego.'); return; }
+    const $ = id => document.getElementById(id);
+    const panels = ['screenIntro','screenQuiz','screenTransition','screenPause','screenFinish'];
+    const GAME_SAVE = 'archivo_am_v1';
+    const levels = [
+      {
+        title:'EL ORIGEN DE AM', label:'01 · Origen del archivo',
+        mission:'Investiga el origen del relato. Reúne tres fragmentos y entra al terminal derecho para comprobar tu lectura.',
+        intro:'Nadie recuerda quién creó este expediente. Solo quedan los datos del autor y la entidad que domina el cuento.',
+        learning:'La obra utiliza la ciencia ficción para interrogar el poder de las máquinas y las consecuencias de perder el control sobre ellas.',
+        palette:['#162d54','#17223f'],
+        platforms:[{x:145,y:414,w:167},{x:386,y:342,w:174},{x:651,y:412,w:163}],
+        hazards:[{x:351,y:462},{x:607,y:462}],
+        questions:[
+          {q:'¿Quién es el autor de «No tengo boca y debo gritar»?', options:['Harlan Ellison','Isaac Asimov','Ray Bradbury','George Orwell'], correct:0, hint:'Es un escritor estadounidense destacado por sus relatos de ciencia ficción.'},
+          {q:'¿Qué es AM en la historia?', options:['Una inteligencia artificial con un poder enorme','Una ciudad subterránea','Un programa escolar','Un explorador humano'], correct:0, hint:'No es una persona: su poder depende de un sistema tecnológico.'}
+        ]
+      },
+      {
+        title:'LOS ÚLTIMOS TESTIGOS', label:'02 · Personajes y conflicto',
+        mission:'Identifica a los personajes y el conflicto central. Los obstáculos aumentan; salta de plataforma en plataforma.',
+        intro:'Los registros muestran a un grupo muy reducido de seres humanos y una relación profundamente desigual con AM.',
+        learning:'El conflicto entre los personajes y AM permite reflexionar sobre la autonomía y las relaciones de poder.',
+        palette:['#34234f','#181c43'],
+        platforms:[{x:148,y:398,w:169},{x:393,y:321,w:180},{x:649,y:393,w:181}],
+        hazards:[{x:344,y:462},{x:601,y:462},{x:840,y:462}],
+        questions:[
+          {q:'¿Cuántos seres humanos permanecen bajo el control de AM en el relato?', options:['Cinco','Dos','Veinte','Cien'], correct:0, hint:'Es un grupo pequeño, que se puede contar con los dedos de una mano.'},
+          {q:'¿Cuál describe mejor el conflicto central?', options:['Una inteligencia artificial ejerce control extremo sobre un grupo humano','Dos países compiten en una carrera espacial','Un estudiante intenta crear un videojuego','Una ciudad busca nuevas fuentes de energía'], correct:0, hint:'Piensa en quién tiene el poder y quién carece de libertad.'}
+        ]
+      },
+      {
+        title:'EL ARCHIVO DEL SILENCIO', label:'03 · Narrador y título',
+        mission:'Presta atención al punto de vista y al sentido del título. Completa el recorrido sin perder tus fragmentos.',
+        intro:'Una voz intenta reconstruir lo ocurrido. ¿Quién cuenta la historia y qué simboliza la imposibilidad de hablar?',
+        learning:'La primera persona y el título intensifican la sensación de falta de libertad que atraviesa el relato.',
+        palette:['#17364b','#1d234f'],
+        platforms:[{x:145,y:416,w:163},{x:393,y:344,w:179},{x:652,y:405,w:169}],
+        hazards:[{x:335,y:462},{x:603,y:462},{x:829,y:462}],
+        questions:[
+          {q:'¿Qué tipo de narrador se utiliza principalmente en el cuento?', options:['Narrador en primera persona','Narrador que habla solo en segunda persona','Un narrador formado por titulares periodísticos','No existe ningún narrador'], correct:0, hint:'Quien nos cuenta lo que sucede habla desde su propia experiencia.'},
+          {q:'¿Qué idea expresa simbólicamente el título de la obra?', options:['La imposibilidad de expresar el sufrimiento y hacerse escuchar','La alegría de cantar en grupo','La invención de un nuevo idioma','La construcción de una biblioteca'], correct:0, hint:'Relaciona la voz con la libertad de expresarse.'}
+        ]
+      },
+      {
+        title:'EL PODER DEL SISTEMA', label:'04 · Ambiente y temas',
+        mission:'Analiza cómo la atmósfera construye tensión y qué advertencias plantea la ciencia ficción.',
+        intro:'Los sistemas pueden ser poderosos. Pero una sociedad necesita límites, principios y responsabilidad.',
+        learning:'El ambiente inquietante y la deshumanización son recursos para plantear preguntas éticas sobre la tecnología.',
+        palette:['#3b224c','#262041'],
+        platforms:[{x:143,y:404,w:177},{x:390,y:325,w:182},{x:654,y:395,w:176}],
+        hazards:[{x:352,y:462},{x:599,y:462},{x:834,y:462}],
+        questions:[
+          {q:'¿Qué atmósfera predomina en «No tengo boca y debo gritar»?', options:['Inquietante y opresiva','Festiva y despreocupada','Humorística y ligera','Romántica y optimista'], correct:0, hint:'Piensa en cómo se siente vivir sin poder decidir.'},
+          {q:'¿Qué tema es especialmente importante para comprender la obra?', options:['La deshumanización y el abuso de poder tecnológico','Las reglas de un deporte','La historia del comercio marítimo','La preparación de un viaje turístico'], correct:0, hint:'Relaciona los riesgos de la tecnología con la dignidad humana.'}
+        ]
+      },
+      {
+        title:'LA ÚLTIMA VOZ', label:'05 · Decisión y reflexión',
+        mission:'Supera el último sector y responde tres desafíos finales sobre responsabilidad, antagonismo y pensamiento crítico.',
+        intro:'El sistema te ofrece un trato: olvidar las preguntas o defender el pensamiento propio. La decisión final es intelectual.',
+        learning:'La tecnología debe diseñarse y utilizarse con responsabilidad, protección de las personas y pensamiento crítico.',
+        palette:['#273a56','#2b2049'],
+        platforms:[{x:150,y:401,w:173},{x:392,y:327,w:181},{x:653,y:398,w:171}],
+        hazards:[{x:349,y:462},{x:602,y:462},{x:839,y:462}],
+        questions:[
+          {q:'¿Por qué AM funciona como antagonista de la historia?', options:['Porque utiliza su poder para dominar a los personajes','Porque ayuda a las personas a escapar','Porque es el narrador que enseña literatura','Porque no tiene ninguna influencia en lo que sucede'], correct:0, hint:'El antagonista se opone a la libertad y los intereses de los protagonistas.'},
+          {q:'¿Qué reflexión ética se puede extraer del cuento?', options:['El desarrollo tecnológico requiere límites y responsabilidad','Cualquier uso de la tecnología es negativo','Las máquinas deben decidir siempre por las personas','La libertad humana carece de importancia'], correct:0, hint:'No se trata de rechazar toda tecnología, sino de reflexionar sobre su uso.'},
+          {q:'¿Cuál es la lectura más crítica y completa del relato?', options:['Cuestiona la concentración de poder y el trato dado a los seres humanos','Solo explica cómo construir computadoras','Afirma que las personas nunca deben inventar nada','Es únicamente una guía de programación'], correct:0, hint:'Busca una interpretación del mensaje literario, no una instrucción técnica.'}
+        ]
+      }
+    ];
+
+    const state = { mode:'intro', levelIndex:0, score:0, health:3, shards:[], player:null, questionIndex:0, mistakes:0, hadMistake:false, invincible:0, t:0, last:0, toastUntil:0 };
+    const keys = {left:false,right:false};
+    let jumpQueued = false;
+    const btnChoices = [];
+    const platformFloor = {x:0,y:FLOOR_Y,w:W,h:H-FLOOR_Y};
+    const randomParticles = Array.from({length:65}, (_,i)=>({x:(i*193+29)%W,y:(i*117+27)%420,v:.2+(i%7)*.075,r:1+(i%3)*.4}));
+
+    function show(name) {
+      for (const panel of panels) $(panel).classList.toggle('visible', panel === name);
+      state.mode = name === 'screenIntro' ? 'intro' : name === 'screenQuiz' ? 'quiz' : name === 'screenTransition' ? 'transition' : name === 'screenPause' ? 'paused' : name === 'screenFinish' ? 'complete' : 'playing';
+      if (name) keys.left = keys.right = false;
+    }
+    function hideAll() { for (const panel of panels) $(panel).classList.remove('visible'); state.mode='playing'; $('gameWrap').focus({preventScroll:true}); }
+    function persist() { try { localStorage.setItem(GAME_SAVE, JSON.stringify({level:state.levelIndex,score:state.score})); } catch (_) {} }
+    function readSave() {
+      try { const v = JSON.parse(localStorage.getItem(GAME_SAVE)); if (v && Number.isInteger(v.level) && v.level >=0 && v.level <= levels.length && Number.isFinite(v.score)) { state.levelIndex=v.level; state.score=Math.max(0,Math.floor(v.score)); } } catch (_) {}
+    }
+    function clearSave() { try { localStorage.removeItem(GAME_SAVE); } catch (_) {} }
+    function askReset() {
+      if (!confirm('¿Reiniciar toda la misión? Se borrará el progreso de este navegador.')) return;
+      clearSave(); state.levelIndex=0; state.score=0; setupLevel(); updateIntro(); show('screenIntro');
+    }
+    function toast(message, seconds=2.3) {
+      const el=$('toast'); el.textContent=message; el.classList.add('show'); state.toastUntil=performance.now()+seconds*1000;
+    }
+    function updateHUD() {
+      $('hudLevel').textContent=String(Math.min(state.levelIndex+1,5)).padStart(2,'0')+' / 05';
+      $('hudShards').textContent=state.shards.filter(s=>s.taken).length+' / 3';
+      $('hudHearts').textContent='♥'.repeat(state.health)+'♡'.repeat(3-state.health);
+      $('hudScore').textContent=String(Math.max(0,state.score)).padStart(4,'0');
+      const level=levels[Math.min(state.levelIndex,4)];
+      $('missionTitle').textContent=level.label;
+      $('missionText').textContent=level.mission;
+    }
+    function dots(completed) { return Array.from({length:5},(_,i)=>'<span class="'+(i<completed?'done':'')+'"></span>').join(''); }
+    function updateIntro() {
+      $('introDots').innerHTML=dots(state.levelIndex);
+      $('btnStart').textContent=state.levelIndex>=5?'VER RESULTADO':(state.levelIndex>0?'CONTINUAR DESDE SECTOR '+(state.levelIndex+1):'INICIAR MISIÓN');
+    }
+    function setupLevel() {
+      if (state.levelIndex>=5) { state.levelIndex=5; $('finalScore').textContent=String(state.score).padStart(4,'0'); updateHUD(); return; }
+      const level=levels[state.levelIndex];
+      state.player={x:60,y:FLOOR_Y-46,w:29,h:46,vx:0,vy:0,onGround:true,face:1};
+      state.shards=level.platforms.map((p,i)=>({x:p.x+p.w/2,y:p.y-34,taken:false,angle:i*1.4}));
+      state.health=3;state.questionIndex=0;state.mistakes=0;state.hadMistake=false;state.invincible=0;
+      updateHUD();
+    }
+    function begin() {
+      if (state.levelIndex>=5) { complete(); return; }
+      hideAll(); toast(levels[state.levelIndex].intro, 4.8);
+    }
+    function handleInteract() {
+      if(state.mode!=='playing') return;
+      const p=state.player;
+      if (!p) return;
+      if (Math.abs(p.x+p.w/2-883)<76 && p.y+p.h>390) {
+        const count=state.shards.filter(s=>s.taken).length;
+        if(count!==3) { toast('Terminal bloqueado: faltan '+(3-count)+' fragmento(s).'); return; }
+        openQuestion();
+      } else toast('Acércate al terminal que está a la derecha.',1.4);
+    }
+    function openQuestion() {
+      show('screenQuiz'); renderQuestion();
+    }
+    function renderQuestion() {
+      const level=levels[state.levelIndex];
+      const q=level.questions[state.questionIndex];
+      if(!q) { clearLevel(); return; }
+      $('questionCounter').textContent='SECTOR '+(state.levelIndex+1)+' · PREGUNTA '+(state.questionIndex+1)+' / '+level.questions.length;
+      $('questionText').textContent=q.q;
+      $('quizFeedback').textContent='Selecciona la respuesta correcta para desbloquear el archivo.';
+      const wrap=$('answers'); wrap.innerHTML=''; btnChoices.length=0;
+      // The correct option is deliberately shuffled each playthrough.
+      const options=q.options.map((label,index)=>({label,index}));
+      for(let i=options.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [options[i],options[j]]=[options[j],options[i]]; }
+      for(const item of options) {
+        const b=document.createElement('button'); b.type='button'; b.className='answer'; b.textContent=item.label;
+        b.addEventListener('click',()=>answerQuestion(item.index,b));
+        wrap.appendChild(b); btnChoices.push(b);
+      }
+    }
+    let quizPending = false;
+    function answerQuestion(index,button) {
+      if(quizPending || state.mode!=='quiz') return;
+      const q=levels[state.levelIndex].questions[state.questionIndex];
+      if(index!==q.correct) {
+        state.mistakes++; state.hadMistake=true;
+        button.classList.add('wrong'); button.disabled=true;
+        state.score=Math.max(0,state.score-20); updateHUD();
+        $('quizFeedback').textContent=state.mistakes>=2?'Pista: '+q.hint:'Esa interpretación no es correcta. Intenta otra opción.';
+        return;
+      }
+      button.classList.add('correct');
+      for(const b of btnChoices) b.disabled=true;
+      state.score+=state.hadMistake?150:250;
+      updateHUD(); quizPending=true;
+      $('quizFeedback').textContent='¡Análisis correcto! Archivo desbloqueado.';
+      window.setTimeout(()=>{
+        quizPending=false;
+        if(state.mode!=='quiz') return;
+        state.questionIndex++; state.hadMistake=false; state.mistakes=0;
+        if(state.questionIndex>=levels[state.levelIndex].questions.length) clearLevel();
+        else renderQuestion();
+      },700);
+    }
+    function clearLevel() {
+      const level=levels[state.levelIndex];
+      const completed=state.levelIndex+1;
+      state.levelIndex=completed;
+      persist();
+      if(completed===5) { complete(); return; }
+      $('transitionTitle').textContent=level.title;
+      $('transitionText').textContent=level.learning;
+      $('transitionDots').innerHTML=dots(completed);
+      show('screenTransition');
+    }
+    function complete() {
+      state.levelIndex=5; persist(); $('finalScore').textContent=String(state.score).padStart(4,'0');
+      $('certPoints').textContent='Puntuación: '+state.score+' puntos';
+      $('certDate').textContent='Fecha: '+new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
+      show('screenFinish'); updateHUD();
+    }
+    function damage() {
+      if(state.invincible>0) return;
+      state.health--; state.score=Math.max(0,state.score-30); updateHUD();
+      state.invincible=75;
+      state.player.x=55;state.player.y=FLOOR_Y-state.player.h;state.player.vy=0;state.player.onGround=true;
+      if(state.health<=0) { state.health=3; toast('Restablecimiento automático: conservas tus fragmentos.'); }
+      else toast('Interferencia detectada. ¡Evita los bloques rosas!');
+      updateHUD();
+    }
+    function update(dt) {
+      state.t+=dt;
+      if(state.mode!=='playing' || !state.player || state.levelIndex>=5) return;
+      const p=state.player;const level=levels[state.levelIndex];
+      if(state.invincible>0)state.invincible-=dt;
+      const move=Number(keys.right)-Number(keys.left);
+      p.vx=move*4.3;
+      if(move!==0)p.face=move;
+      p.x=Math.max(0,Math.min(W-p.w,p.x+p.vx*dt));
+      if(jumpQueued && p.onGround) {p.vy=-12.9;p.onGround=false;}
+      jumpQueued=false;
+      const oldBottom=p.y+p.h;
+      p.vy=Math.min(16,p.vy+.62*dt);
+      p.y+=p.vy*dt;
+      p.onGround=false;
+      const plats=[...level.platforms,platformFloor];
+      for(const platform of plats) {
+        const nowBottom=p.y+p.h;
+        if(p.vy>=0 && oldBottom<=platform.y+7 && nowBottom>=platform.y && p.x+p.w>platform.x+3 && p.x<platform.x+platform.w-3) {
+          p.y=platform.y-p.h; p.vy=0;p.onGround=true;
+          break;
+        }
+      }
+      if(p.y>H+40){p.y=FLOOR_Y-p.h;p.vy=0;}
+      for(const shard of state.shards) {
+        if(shard.taken)continue;
+        const dx=p.x+p.w/2-shard.x,dy=p.y+p.h/2-shard.y;
+        if(Math.abs(dx)<28 && Math.abs(dy)<35) {
+          shard.taken=true;state.score+=100;updateHUD();
+          if(state.shards.every(s=>s.taken))toast('3/3 fragmentos recuperados. ¡Ve al terminal y pulsa E!');
+          else toast('Fragmento recuperado +100',1.3);
+        }
+      }
+      for (const hazard of level.hazards) {
+        if (p.x+p.w>hazard.x-14 && p.x<hazard.x+14 && p.y+p.h>hazard.y-15 && p.y<hazard.y+25) {damage();break;}
+      }
+    }
+
+    function rect(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(x,y,w,h);}
+    function glowRect(x,y,w,h,color,blur=15) {ctx.save();ctx.shadowColor=color;ctx.shadowBlur=blur;rect(x,y,w,h,color);ctx.restore();}
+    function line(x1,y1,x2,y2,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+    function drawBackground(level) {
+      const g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,level.palette[0]);g.addColorStop(1,level.palette[1]);
+      rect(0,0,W,H,g);
+      const t=state.t;
+      // Decorative original machine architecture and circuitry.
+      for(let i=0;i<14;i++) {
+        const x=i*82-30;
+        const tall=145+(i*41)%145;
+        rect(x,H-55-tall,53,tall,'rgba(6,10,31,.48)');
+        rect(x+9,H-55-tall+16,35,3,'rgba(113,243,239,.07)');
+        for(let j=0;j<4;j++) rect(x+11+(j%2)*12,H-75-tall+42+j*30,7,8,'rgba(245,95,176,.12)');
+      }
+      for(let i=0;i<randomParticles.length;i++) {
+        const p=randomParticles[i]; const y=(p.y+t*p.v)%470;
+        rect(p.x,y,p.r,p.r,'rgba(163,216,250,.28)');
+      }
+      for(let i=0;i<8;i++) {
+        const x=44+i*132;
+        line(x,20,x,415,'rgba(102,198,238,.085)');
+        line(x,150+(i%3)*50,x+60,150+(i%3)*50,'rgba(105,244,240,.11)',2);
+      }
+      // AM-inspired all-seeing abstract interface, purely decorative.
+      const cx=487,cy=135;
+      ctx.save();ctx.globalAlpha=.19+Math.sin(t*.028)*.04;
+      ctx.strokeStyle='#ff68bc';ctx.lineWidth=3;
+      ctx.beginPath();ctx.ellipse(cx,cy,123,70,0,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(cx,cy,37,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='#ff70bc';ctx.beginPath();ctx.arc(cx,cy,10,0,Math.PI*2);ctx.fill();
+      ctx.font='bold 49px monospace';ctx.textAlign='center';ctx.fillStyle='#e9b4ff';ctx.fillText('A M',cx,63);
+      ctx.restore();
+      rect(0,475,W,65,'rgba(5,10,28,.72)');
+      for(let i=0;i<24;i++)line(i*44,487,480+(i-12)*80,540,'rgba(90,230,242,.095)');
+      for(let i=0;i<4;i++)line(0,490+i*16,W,490+i*16,'rgba(90,230,242,.09)');
+      ctx.textAlign='left';ctx.font='bold 12px monospace';ctx.fillStyle='rgba(194,235,255,.52)';
+      ctx.fillText('AM:// MEMORY VAULT',21,29);
+      ctx.textAlign='right';ctx.fillText('SECTOR 0'+(state.levelIndex+1)+' / 05',W-24,29);
+    }
+    function drawPlatforms(level) {
+      for(const p of [platformFloor,...level.platforms]) {
+        rect(p.x,p.y,p.w,p.h,'#101a35');
+        glowRect(p.x,p.y,p.w,4,'#59dfe8',12);
+        for(let k=p.x+15;k<p.x+p.w-10;k+=22)rect(k,p.y+9,10,3,'rgba(108,208,237,.16)');
+        rect(p.x+2,p.y+5,3,13,'rgba(186,240,250,.17)');
+      }
+    }
+    function drawShards() {
+      state.shards.forEach((s,i)=>{
+        if(s.taken)return;
+        const yy=s.y+Math.sin(state.t*.055+i)*5;
+        ctx.save();ctx.translate(s.x,yy);ctx.rotate(Math.PI/4+Math.sin(state.t*.02+i)*.2);
+        ctx.shadowColor='#ffe48c';ctx.shadowBlur=22;
+        rect(-11,-11,22,22,'#ffe59c');rect(-5,-5,10,10,'#fff7d8');ctx.restore();
+        ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillStyle='#fff0b0';ctx.fillText('◇',s.x,yy-24);
+      });
+    }
+    function drawHazards(level) {
+      level.hazards.forEach((h,i)=>{
+        const pulse=.65+Math.sin(state.t*.09+i)*.23;
+        ctx.save();ctx.globalAlpha=pulse;
+        glowRect(h.x-15,h.y-16,30,40,'#ff659b',18);
+        rect(h.x-11,h.y-12,22,33,'#641a51');
+        for(let y=h.y-11;y<h.y+21;y+=8)line(h.x-9,y,h.x+9,y+7,'#ffc0dc',2);
+        ctx.restore();
+      });
+    }
+    function drawTerminal() {
+      const got=state.shards.filter(s=>s.taken).length===3;
+      const x=856,y=391,col=got?'#69f4f0':'#fb75bd';
+      glowRect(x,y,56,86,col,got?25:14);
+      rect(x+4,y+6,48,73,'#0b1830');
+      rect(x+10,y+13,36,30,got?'#144d5b':'#492345');
+      ctx.textAlign='center';ctx.font='bold 19px monospace';ctx.fillStyle=col;ctx.fillText('AM',x+28,y+34);
+      ctx.font='bold 11px monospace';ctx.fillText(got?'E · ABRIR':'BLOQUEADO',x+28,y+60);
+      ctx.font='bold 12px monospace';ctx.fillText('TERMINAL',x+28,y-12);
+      if(state.mode==='playing'&&state.player&&Math.abs(state.player.x+state.player.w/2-(x+28))<75&&state.player.y+state.player.h>390){
+        rect(x-13,y-54,85,24,'rgba(10,24,40,.94)');
+        ctx.fillStyle='#eafcff';ctx.font='bold 13px monospace';ctx.fillText('PULSA E',x+28,y-37);
+      }
+    }
+    function drawPlayer() {
+      const p=state.player;if(!p)return;
+      if(state.invincible>0 && Math.floor(state.t/5)%2===0)return;
+      ctx.save();ctx.translate(p.x+p.w/2,p.y);ctx.scale(p.face,1);
+      glowRect(-12,2,24,29,'#8be5fe',7);
+      rect(-13,2,26,24,'#162e56');rect(-10,6,20,13,'#89ddfc');
+      rect(-6,10,13,5,'#142d52');rect(3,11,5,4,'#ff79b7');
+      rect(-10,27,20,13,'#ff72b3');rect(-10,41,8,5,'#8cf1ff');rect(3,41,8,5,'#8cf1ff');
+      rect(-17,29,6,8,'#8cdaf5');rect(11,29,6,8,'#8cdaf5');
+      ctx.restore();
+    }
+    function draw() {
+      const level=levels[Math.min(state.levelIndex,4)];
+      drawBackground(level);
+      drawPlatforms(level);
+      drawHazards(level);
+      drawShards();
+      drawTerminal();
+      drawPlayer();
+      if(state.mode==='playing') {
+        ctx.font='bold 12px monospace';ctx.textAlign='left';ctx.fillStyle='#e6f8ff';
+        ctx.fillText('FRAGMENTOS: '+state.shards.filter(s=>s.taken).length+'/3',22,513);
+        ctx.textAlign='right';ctx.fillStyle='#b5f8f3';ctx.fillText('E = INTERACTUAR',W-21,513);
+      }
+    }
+    function frame(ts) {
+      let dt=state.last?Math.min(2.2,(ts-state.last)/16.6667):1;
+      state.last=ts;
+      update(dt);draw();
+      if(state.toastUntil && ts>state.toastUntil){$('toast').classList.remove('show');state.toastUntil=0;}
+      requestAnimationFrame(frame);
+    }
+    function pressJump() { if(state.mode==='playing')jumpQueued=true; }
+    function onKeyDown(e) {
+      const k=e.key.toLowerCase();
+      const isControl=['arrowleft','arrowright','arrowup',' ','a','d','w','e','enter','escape'].includes(k);
+      if(isControl && !['INPUT','TEXTAREA'].includes(document.activeElement.tagName) && (state.mode==='playing' || state.mode==='paused')) e.preventDefault();
+      if(state.mode==='playing') {
+        if(k==='arrowleft'||k==='a')keys.left=true;
+        if(k==='arrowright'||k==='d')keys.right=true;
+        if((k==='arrowup'||k==='w'||k===' ')&&!e.repeat)pressJump();
+        if((k==='e'||k==='enter')&&!e.repeat)handleInteract();
+        if(k==='escape')show('screenPause');
+      } else if (state.mode==='paused' && k==='escape')hideAll();
+    }
+    function onKeyUp(e) {
+      const k=e.key.toLowerCase();
+      if(k==='arrowleft'||k==='a')keys.left=false;
+      if(k==='arrowright'||k==='d')keys.right=false;
+    }
+    document.addEventListener('keydown',onKeyDown);
+    document.addEventListener('keyup',onKeyUp);
+    window.addEventListener('blur',()=>{keys.left=keys.right=false;if(state.mode==='playing')show('screenPause');});
+    function bindTouch(id,onDown,onUp) {
+      const el=$(id);
+      el.addEventListener('pointerdown',e=>{e.preventDefault();el.setPointerCapture?.(e.pointerId);onDown();});
+      const stop=e=>{e.preventDefault();onUp?.();};
+      el.addEventListener('pointerup',stop);el.addEventListener('pointercancel',stop);el.addEventListener('lostpointercapture',()=>onUp?.());
+    }
+    bindTouch('touchLeft',()=>{keys.left=true;},()=>{keys.left=false;});
+    bindTouch('touchRight',()=>{keys.right=true;},()=>{keys.right=false;});
+    bindTouch('touchJump',pressJump,()=>{});
+    bindTouch('touchInteract',handleInteract,()=>{});
+    $('btnStart').addEventListener('click',begin);
+    $('btnInstructions').addEventListener('click',()=>{
+      alert('MISIÓN: 1) Muévete con ← → (o A/D). 2) Salta con ↑, W o ESPACIO para recoger los 3 fragmentos luminosos. 3) Evita las interferencias rosas. 4) Ve al terminal de la derecha y pulsa E. 5) Responde correctamente para desbloquear el siguiente sector. Si pierdes la integridad, conservarás lo que reuniste.');
+    });
+    $('btnCloseQuiz').addEventListener('click',()=>{if(!quizPending)hideAll();});
+    $('btnNext').addEventListener('click',()=>{setupLevel();begin();});
+    $('btnResume').addEventListener('click',hideAll);
+    $('btnPause').addEventListener('click',()=>{if(state.mode==='playing')show('screenPause');else if(state.mode==='paused')hideAll();});
+    $('btnReset').addEventListener('click',askReset);
+    $('btnReplay').addEventListener('click',()=>{clearSave();state.levelIndex=0;state.score=0;setupLevel();begin();});
+    $('btnPrint').addEventListener('click',()=>{
+      const name=$('studentName').value.trim();
+      if(!name){$('studentName').focus();toast('Escribe tu nombre para generar la constancia.');alert('Escribe tu nombre completo para personalizar la constancia.');return;}
+      $('certStudent').textContent=name;
+      $('certPoints').textContent='Puntuación: '+state.score+' puntos';
+      $('certDate').textContent='Fecha: '+new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
+      window.print();
+    });
+    readSave();setupLevel();updateIntro();show('screenIntro');requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
